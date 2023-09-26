@@ -13,3 +13,17 @@ C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTec
 C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr2-Server\obj\Debug\net7.0\WebTecLr2-Server.pdb
 C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr2-Server\obj\Debug\net7.0\WebTecLr2-Server.genruntimeconfig.cache
 C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr2-Server\obj\Debug\net7.0\ref\WebTecLr2-Server.dll
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\obj\Debug\net7.0\WebTecLr2-Server.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\obj\Debug\net7.0\WebTecLr2-Server.AssemblyInfoInputs.cache
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\obj\Debug\net7.0\WebTecLr2-Server.AssemblyInfo.cs
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\obj\Debug\net7.0\WebTecLr2-Server.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\obj\Debug\net7.0\WebTecLr2-Server.dll
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\obj\Debug\net7.0\refint\WebTecLr2-Server.dll
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\obj\Debug\net7.0\WebTecLr2-Server.pdb
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\bin\Debug\net7.0\WebTecLr2-Server.exe
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\bin\Debug\net7.0\WebTecLr2-Server.deps.json
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\bin\Debug\net7.0\WebTecLr2-Server.runtimeconfig.json
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\bin\Debug\net7.0\WebTecLr2-Server.dll
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\bin\Debug\net7.0\WebTecLr2-Server.pdb
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\obj\Debug\net7.0\WebTecLr2-Server.genruntimeconfig.cache
+C:\Users\User\Desktop\МАИ\4 курс\7 сем\web-технологии\WebTecLr\LR2\obj\Debug\net7.0\ref\WebTecLr2-Server.dll
