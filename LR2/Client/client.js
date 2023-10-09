@@ -20,7 +20,7 @@ function main() {
 	client.connect(config.port, config.address, function() {
 		logger.log('Client connected');
 		setTimeout(() => {
-			client.write('Mokshin Ivan Nikolayevich');
+			client.write('Mokshin Ivan Nikolayevich\0');
 			logger.log('Sent message');
 		}, 500);
 	});
