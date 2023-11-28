@@ -19,7 +19,7 @@ function getMimeType(extention) {
             break;
         case '.png':
             return 'image/png';
-            break;      
+            break;
         case '.jpg':
             return 'image/jpg';
             break;
@@ -40,13 +40,18 @@ http.createServer(function (request, response) {
     var filePath = '.' + request.url;
     if (filePath == './') filePath = './index.html';
 
+    if (request.url === "/redirect") {
+        response.writeHead(301, { 'Location': "/page2.html" });
+        response.end();
+    }
+
     var fileExtension = path.extname(filePath);
     var mimeType = getMimeType(fileExtension);
 
-    fs.readFile(filePath, function(error, content) {
+    fs.readFile(filePath, function (error, content) {
         if (error) {
-            if(error.code == 'ENOENT'){
-                fs.readFile('./notfound.html', function(error, content) {
+            if (error.code == 'ENOENT') {
+                fs.readFile('./notfound.html', function (error, content) {
                     response.writeHead(404, { 'Content-Type': "text/html" });
                     response.end(content, 'utf-8');
                 });

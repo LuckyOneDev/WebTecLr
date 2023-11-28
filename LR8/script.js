@@ -24,48 +24,67 @@ for (const tag of metatags) {
     e3.innerHTML += ", " + tag.tagName;
 }
 
-function getChainLength(element) {
-    let length = 0;
-    while (element.children.length) {
-        length++;
-        element = element.children[0];
-    }
-    return length;
-}
-metatags = document.head.children;
-let maxLength = -1;
-let maxElement = null;
-for (let element of metatags) {
-    let length = getChainLength(element);
-    if (length > maxLength) {
-        maxLength = length;
-        maxElement = element;
-    }
-}
-const e4 = document.createElement("p");
-e4.innerHTML = maxElement.tagName;
-document.body.appendChild(e4);
+function findLongestTagChain(node, currentChain = []) {
+    currentChain.push(node.tagName);
+    if (node.children && node.children.length > 0) {
+        let longestChain = currentChain;
 
+        for (let i = 0; i < node.children.length; i++) {
+            const child = node.children[i];
+            const childChain = findLongestTagChain(child, currentChain.slice());
+
+            if (childChain.length > longestChain.length) {
+                longestChain = childChain;
+            }
+        }
+
+        return longestChain;
+    }
+
+    return currentChain;
+}
+const longestTagChain = findLongestTagChain(document.documentElement);
+console.log("Length: " + longestTagChain.length);
+for (const tag of longestTagChain) {
+    console.log(tag);
+}
 
 
 let divs = document.getElementsByTagName("div");
-
 for (const div of divs) {
     div.style.color = "red";
 }
 
 const button = document.createElement("button");
-button.innerHTML = "Erase all buttons";
+button.innerHTML = "Erase";
 button.onclick = () => {
-    document.getElementsByTagName('button').forEach(x => {
-        x.innerHTML = ""
-    });
+    const selected = document.querySelectorAll('.mainindent > p');
+    if (button.innerHTML === "Erase") {
+        button.innerHTML = "Return";
+        for (const x of selected) {
+            x.style.display = "none";
+        }
+        x.style.display = "block"
+    } else {
+        button.innerHTML = "Erase";
+        for (const x of selected) {
+            x.style.display = "block";
+        }
+    }
+
 }
+document.body.appendChild(button);
 
 var lastScrollTop = 0;
 document.onscroll = (evt) => {
     var scroll = document.documentElement.scrollTop;
     if (scroll > lastScrollTop) {
-        document.appendChild("<p>" + new Date() + "</p>");
+        const e5 = document.createElement("p");
+        e5.innerHTML = new Date().toString() + " : " + (scroll - lastScrollTop);
+        document.body.appendChild(e5);
     }
 }
+
+document.querySelectorAll("*").forEach(el => {
+    if (el.shadowRoot) console.log(el.shadowRoot)
+});
