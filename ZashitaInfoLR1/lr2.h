@@ -4,7 +4,6 @@
 #include <mpirxx.h>
 
 using namespace std;
-
 // Function to generate a random prime number of given bit length
 mpz_class generate_prime(int bit_length) {
     mpz_class random_number;
