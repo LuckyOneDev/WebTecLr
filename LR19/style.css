@@ -1,4 +1,7 @@
 body {
-    background-color: wheat;
     font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+tr, td {
+    border: 1px solid black;
 }
