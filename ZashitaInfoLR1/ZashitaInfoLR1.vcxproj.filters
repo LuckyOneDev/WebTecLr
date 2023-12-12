@@ -23,7 +23,13 @@
     <ClInclude Include="bigint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lr2.h">
+    <ClInclude Include="rsa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stribog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kuzv2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

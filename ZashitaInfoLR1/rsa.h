@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include <iostream>
-#include <tuple>
+#include <vector>
 #include <mpirxx.h>
+#include <sstream>
 
 using namespace std;
 // Function to generate a random prime number of given bit length
@@ -54,52 +55,70 @@ key_struct get_keys(mpz_class p, mpz_class q) {
 // Function to encrypt a message using RSA encryption
 mpz_class encrypt(mpz_class message, key_struct keys) {
     // Calculate c = m^e (mod n)
-    
-    mpz_powm(c, message, e, n);
+    mpz_class c;
+    mpz_powm(c.get_mpz_t(), message.get_mpz_t(), keys.e.get_mpz_t(), keys.n.get_mpz_t());
+    return c;
 }
 
 // Function to decrypt a message using RSA encryption
-mpz_class decrypt(mpz_class message, key_struct keys) {
+mpz_class decrypt(mpz_class ciphertext, key_struct keys) {
     // Calculate m = c^d (mod n)
-    mpz_init(message);
-    mpz_powm(message, ciphertext, d, n);
+    mpz_class message;
+    mpz_powm(message.get_mpz_t(), ciphertext.get_mpz_t(), keys.d.get_mpz_t(), keys.n.get_mpz_t());
+    return message;
 }
 
-int lr2() {
+// Encodes a string to an mpz_class
+std::vector<mpz_class> encode(string str) {
+    std::vector<mpz_class> result;
+    for (int i = 0; i < str.length(); i++) {
+        mpz_class cur;
+        mpz_import(cur.get_mpz_t(), 1, 1, 1, 0, 0, &str[i]);
+        result.push_back(cur);
+    }
+    return result;
+}
+
+// Decodes an mpz_class to a string
+string decode(std::vector<mpz_class> message) {
+    std::stringstream ss;
+    for (auto& letter : message) // access by reference to avoid copying
+    {
+        ss << (char)letter.get_ui();
+    }
+    return ss.str();
+}
+
+int lr2(std::string text, int bits = 1024) {
     // Generate two random prime numbers of 1024 bits each
     mpz_class p, q, n, e, d, phi;
-    p = generate_prime(1024);
-    q = generate_prime(1024);
+    p = generate_prime(bits);
+    q = generate_prime(bits);
 
-    // Calculate the public key (n, e)
-    auto pub = get_keys(p, q);
+    // Calculate the public and private keys
+    auto keys = get_keys(p, q);
 
-    // Calculate the value of d
-    mpz_class d;
-    mpz_class phi;
-    mpz_sub_ui(p, p, 1);
-    mpz_sub_ui(q, q, 1);
-    mpz_mul(phi, p, q);
-    mpz_invert(d, pub, phi);
-
-    // Generate a message to encrypt
-    mpz_t message;
-    mpz_init(message);
-    mpz_set_str(message, "15211\0", 10);
-
+    // Encode
+    std::vector<mpz_class> message = encode(text);
     // Encrypt the message
-    mpz_t ciphertext;
-    mpz_init(ciphertext);
-    encrypt(ciphertext, message, n, e);
-    printf("Ciphertext: %s\n", mpz_get_str(NULL, 10, ciphertext));
-
-    // Decrypt the message
-    mpz_t decrypted_message;
-    mpz_init(decrypted_message);
-    decrypt(decrypted_message, ciphertext, n, d);
-
-    // Print the decrypted message
-    printf("Decrypted message: %s\n", mpz_get_str(NULL, 10, decrypted_message));
+    std::vector<mpz_class> ciphertext;
+    for (auto letter : message)
+    {
+        ciphertext.push_back(encrypt(letter, keys));
+    }
+    
+    // Encrypt the message
+    std::vector<mpz_class> decrypted_message;
+    for (auto letter : ciphertext)
+    {
+        decrypted_message.push_back(decrypt(letter, keys));
+    }
+    
+    // Print
+    auto decoded_orig = decode(message);
+    auto decoded_after_ci = decode(decrypted_message);
+    std::cout << "Message: " << decoded_orig << std::endl;
+    std::cout << "Decrypted message: " << decoded_after_ci << std::endl;
 
     return 0;
 }
