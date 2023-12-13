@@ -449,7 +449,7 @@ void hash_final(THashContext* stribog_ctx)
 }
 
 void lr4(std::string str, std::ofstream& out) {
-	std::cout << "Message: " << str << std::endl;
+	out << "Message: " << str << std::endl;
     THashContext* stribog_ctx = new THashContext();
     hash_init(stribog_ctx);
     hash_blocks(stribog_ctx, (uint8_t*)str.c_str(), str.size());

@@ -9,6 +9,7 @@ int main()
 	std::string test_string((std::istreambuf_iterator<char>(inp)),
 		std::istreambuf_iterator<char>());
 	std::ofstream out("output.txt");
+
 	lr1(out); // BigInt
 	lr2(test_string, out); // RSA-1024
 	//lr2(test_string, out, 65536); // RSA-65536
