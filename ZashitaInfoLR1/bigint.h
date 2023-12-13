@@ -10,6 +10,7 @@
 using namespace std;
 
 constexpr auto dec_mod = 10000;
+
 class BigInt {
 private:
 	vector<int> parts;
@@ -20,21 +21,23 @@ public:
 	BigInt(int n) : parts({ 0 }) { increase_digit(0, n); };
 	~BigInt() {};
 
-	BigInt& operator*(int x);
 	BigInt& operator+(const BigInt& rhs) const;
+	BigInt& operator*(int x);
 	BigInt& operator*(const BigInt& rhs) const;
-	BigInt pow(long power);
+	BigInt& operator/(const BigInt& rhs) const;
+	BigInt& pow(long power);
 	friend ostream& operator<<(ostream&, const BigInt&);
 };
 
-BigInt BigInt::pow(long power) {
-	BigInt newVal = *this;
-	BigInt initial = *this;
-	for (long i = 0; i < power; i++)
+BigInt& BigInt::pow(long power) {
+	BigInt* newVal = &(*this * *this);
+	for (long i = 1; i < power; i++)
 	{
-		newVal = newVal * initial;
+		auto buf = &(*newVal * *this);
+		delete newVal;
+		newVal = buf;
 	}
-	return newVal;
+	return *newVal;
 }
 
 void BigInt::increase_digit(int idx, int n) {
@@ -81,6 +84,21 @@ BigInt& BigInt::operator*(const BigInt& rhs) const {
 	return *mul;
 }
 
+BigInt& BigInt::operator/(const BigInt& rhs) const {
+	BigInt* mul = new BigInt();
+
+	int size_lhs = parts.size();
+	int size_rhs = rhs.parts.size();
+
+	for (int i_lhs = 0; i_lhs < size_lhs; i_lhs++) {
+		for (int i_rhs = 0; i_rhs < size_rhs; i_rhs++) {
+			mul->increase_digit(i_lhs + i_rhs, parts[i_lhs] / rhs.parts[i_rhs]);
+		}
+	}
+
+	return *mul;
+}
+
 BigInt& BigInt::operator+(const BigInt& rhs) const {
 	BigInt& sum = const_cast<BigInt&>(*this);
 
@@ -106,10 +124,9 @@ ostream& operator<<(ostream& os, const BigInt& bi) {
 }
 
 void lr1(std::ofstream& out) {
-	BigInt a(21);
-	BigInt b(131);
-	a = a.pow(21);
-	b = b.pow(41);
-	BigInt c = a + b;
-	out << c.pow(2) << std::endl;
+	BigInt a(250);
+	out << a / 5 << std::endl;
+	out << a.pow(255) << std::endl;
+	out << a + 255 << std::endl;
+
 }

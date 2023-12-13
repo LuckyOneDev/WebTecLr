@@ -11,10 +11,10 @@ int main()
 	std::ofstream out("output.txt");
 
 	lr1(out); // BigInt
-	lr2(test_string, out); // RSA-1024
+	//lr2(test_string, out); // RSA-1024
 	//lr2(test_string, out, 65536); // RSA-65536
-	lr3(test_string, out); // kuznechik
-	lr4(test_string, out); // stribog
+	//lr3(test_string, out); // kuznechik
+	//lr4(test_string, out); // stribog
 
 	inp.close();
 	out.close();
