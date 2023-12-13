@@ -12,21 +12,31 @@ constexpr auto dec_mod = 10000;
 class BigInt {
 private:
 	vector<int> parts;
-	void incDigit(int, int);
+	void increase_digit(int, int);
 
 public:
 	BigInt() : parts({ 0 }) {};
-	BigInt(int n) : parts({ 0 }) { incDigit(0, n); };
+	BigInt(int n) : parts({ 0 }) { increase_digit(0, n); };
 	~BigInt() {};
 
 	BigInt& operator*(int x);
 	BigInt& operator+(const BigInt& rhs) const;
 	BigInt& operator*(const BigInt& rhs) const;
-
+	BigInt pow(long power);
 	friend ostream& operator<<(ostream&, const BigInt&);
 };
 
-void BigInt::incDigit(int idx, int n) {
+BigInt BigInt::pow(long power) {
+	BigInt newVal = *this;
+	BigInt initial = *this;
+	for (long i = 0; i < power; i++)
+	{
+		newVal = newVal * initial;
+	}
+	return newVal;
+}
+
+void BigInt::increase_digit(int idx, int n) {
 	if (parts.size() <= idx) parts.resize(idx + 1);
 	parts[idx] += n;
 	int mod_g = parts[idx] % dec_mod;
@@ -34,7 +44,7 @@ void BigInt::incDigit(int idx, int n) {
 	parts[idx] = mod_g;
 
 	if (extra > 0) {
-		incDigit(idx + 1, extra);
+		increase_digit(idx + 1, extra);
 	}
 }
 
@@ -63,7 +73,7 @@ BigInt& BigInt::operator*(const BigInt& rhs) const {
 
 	for (int i_lhs = 0; i_lhs < size_lhs; i_lhs++) {
 		for (int i_rhs = 0; i_rhs < size_rhs; i_rhs++) {
-			mul->incDigit(i_lhs + i_rhs, parts[i_lhs] * rhs.parts[i_rhs]);
+			mul->increase_digit(i_lhs + i_rhs, parts[i_lhs] * rhs.parts[i_rhs]);
 		}
 	}
 
@@ -75,7 +85,7 @@ BigInt& BigInt::operator+(const BigInt& rhs) const {
 
 	int size_rhs = rhs.parts.size();
 	for (int i = 0; i < size_rhs; i++) {
-		sum.incDigit(i, rhs.parts[i]);
+		sum.increase_digit(i, rhs.parts[i]);
 	}
 
 	return sum;
@@ -97,12 +107,8 @@ ostream& operator<<(ostream& os, const BigInt& bi) {
 void lr1() {
 	BigInt a(21);
 	BigInt b(131);
-	for (size_t i = 0; i < 430; i++)
-	{
-		a = a * 2;
-		b = b * 5;
-	}
-
+	a = a.pow(21);
+	b = b.pow(41);
 	BigInt c = a + b;
-	std::cout << c << std::endl;
+	std::cout << c.pow(2) << std::endl;
 }

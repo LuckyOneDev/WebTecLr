@@ -3,10 +3,13 @@
 #include <string.h>
 #include <malloc.h>
 
+#define BLOCK_SIZE 64
+typedef uint8_t uint_block_size[BLOCK_SIZE];
+
 /*
 * значени€ дл€ перестановки байт (преобразование P)
 */
-static const unsigned char Tau[64] = {
+static const uint8_t tau_values[64] = {
     0,   8,  16,  24,  32,  40,  48,  56,
     1,   9,  17,  25,  33,  41,  49,  57,
     2,  10,  18,  26,  34,  42,  50,  58,
@@ -21,7 +24,7 @@ static const unsigned char Tau[64] = {
 * значени€ дл€ нелинейного преобразовани€
 * множества двоичных векторов (преобразование S)
 */
-static const unsigned char Pi[256] = {
+static const uint8_t stri_pi_values[256] = {
     252, 238, 221,  17, 207, 110,  49,  22,
     251, 196, 250, 218,  35, 197,   4,  77,
     233, 119, 240, 219, 147,  46, 153, 186,
@@ -60,7 +63,7 @@ static const unsigned char Pi[256] = {
 * значени€ дл€ линейного преобразовани€
 * множества двоичных векторов (преобразование L)
 */
-static const unsigned long long A[64] = {
+static const unsigned long long a_values[64] = {
     0x8e20faa72ba0b470,
     0x47107ddd9b505a38,
     0xad08b0e0c3282d1c,
@@ -130,7 +133,7 @@ static const unsigned long long A[64] = {
 /*
 * итерационные константы
 */
-static const unsigned char C[12][64] = {
+static const uint8_t c_values[12][64] = {
     {
         0x07, 0x45, 0xa6, 0xf2, 0x59, 0x65, 0x80, 0xdd,
         0x23, 0x4d, 0x74, 0xcc, 0x36, 0x74, 0x76, 0x05,
@@ -254,46 +257,28 @@ static const unsigned char C[12][64] = {
 
 };
 
-#define BLOCK_SIZE 64
-
-typedef uint8_t vect[BLOCK_SIZE];
-
-typedef struct HashContext
+typedef struct stribog_hash_context
 {
-    vect buffer;
-    vect hash;
-    vect h;
-    vect N;
-    vect Sigma;
-    vect v_0;
-    vect v_512;
-    size_t buf_size;
-    int hash_size;
+    uint_block_size buffer; // буффер
+    size_t buffer_size; // размер оставшейс€ части
+    uint_block_size result; // результат (хэш)
+    uint_block_size v_0; // »нициализационный вектор
+    uint_block_size v_512; // »нициализационный вектор
+    uint_block_size h; // ѕромежуточный результат вычислений
+    uint_block_size sigma;  //  онтрольна€ сумма
+    uint_block_size N;
 } THashContext;
 
 
-void
-HashInit(THashContext* CTX, uint16_t hash_size)
+void hash_init(THashContext* stribog_ctx)
 {
-    memset(CTX, 0x00, sizeof(THashContext));
-    if (hash_size == 256)
-        memset(CTX->h, 0x01, BLOCK_SIZE);
-    else
-        memset(CTX->h, 0x00, BLOCK_SIZE);
-    CTX->hash_size = hash_size;
-    CTX->v_512[1] = 0x02;
+    memset(stribog_ctx, 0x00, sizeof(THashContext));
+    memset(stribog_ctx->h, 0x01, BLOCK_SIZE);
+    stribog_ctx->v_512[1] = 0x02;
 }
 
-static void
-HashX(const uint8_t* a, const uint8_t* b, uint8_t* c)
-{
-    int i;
-    for (i = 0; i < 64; i++)
-        c[i] = a[i] ^ b[i];
-}
-
-static void
-HashAdd512(const uint8_t* a, const uint8_t* b, uint8_t* c)
+// ѕобитовое xor (512)
+void hash_xor(const uint8_t* a, const uint8_t* b, uint8_t* c)
 {
     int i;
     int internal = 0;
@@ -304,28 +289,36 @@ HashAdd512(const uint8_t* a, const uint8_t* b, uint8_t* c)
     }
 }
 
-static void
-HashP(uint8_t* state)
+// ƒвоичное сложение по модулю 2
+void hash_add_mod(const uint8_t* a, const uint8_t* b, uint8_t* c)
 {
     int i;
-    vect internal;
+    for (i = 0; i < 64; i++)
+        c[i] = a[i] ^ b[i];
+}
+
+// преобразование перестановки
+void hash_p(uint8_t* state)
+{
+    int i;
+    uint_block_size internal;
     for (i = 63; i >= 0; i--)
-        internal[i] = state[Tau[i]];
+        internal[i] = state[tau_values[i]];
     memcpy(state, internal, BLOCK_SIZE);
 }
 
-static void
-HashS(uint8_t* state)
+// преобразование замены или подстановки
+void hash_s(uint8_t* state)
 {
     int i;
-    vect internal;
+    uint_block_size internal;
     for (i = 63; i >= 0; i--)
-        internal[i] = Pi[state[i]];
+        internal[i] = stri_pi_values[state[i]];
     memcpy(state, internal, BLOCK_SIZE);
 }
 
-static void
-HashL(uint8_t* state)
+// линейное преобразование
+void hash_l(uint8_t* state)
 {
     uint64_t* internal_in = (uint64_t*)state;
     uint64_t internal_out[8];
@@ -335,146 +328,136 @@ HashL(uint8_t* state)
     {
         for (j = 63; j >= 0; j--)
             if ((internal_in[i] >> j) & 1)
-                internal_out[i] ^= A[63 - j];
+                internal_out[i] ^= a_values[63 - j];
     }
     memcpy(state, internal_out, 64);
 }
 
-static void
-HashGetKey(uint8_t* K, int i)
+// ѕолучаем раундовые ключи
+void hash_getkey(uint8_t* K, int i)
 {
-    HashX(K, C[i], K);
-    HashS(K);
-    HashP(K);
-    HashL(K);
+    hash_add_mod(K, c_values[i], K);
+    hash_s(K);
+    hash_p(K);
+    hash_l(K);
 }
 
-static void
-HashE(uint8_t* K, const uint8_t* m, uint8_t* state)
+// ф-ци€ преобразовани€
+void hash_e(uint8_t* K, const uint8_t* m, uint8_t* state)
 {
     int i;
     memcpy(K, K, BLOCK_SIZE);
-    HashX(m, K, state);
+    hash_add_mod(m, K, state);
     for (i = 0; i < 12; i++)
     {
-        HashS(state);
-        HashP(state);
-        HashL(state);
-        HashGetKey(K, i);
-        HashX(state, K, state);
+        hash_s(state);
+        hash_p(state);
+        hash_l(state);
+        hash_getkey(K, i);
+        hash_add_mod(state, K, state);
     }
 }
 
-static void
-HashG(uint8_t* h, uint8_t* N, const uint8_t* m)
+// ф-ци€ сжати€
+void hash_g(uint8_t* h, uint8_t* N, const uint8_t* m)
 {
-    vect K, internal;
-    HashX(N, h, K);
+    uint_block_size K, internal;
+    hash_add_mod(N, h, K);
 
-    HashS(K);
-    HashP(K);
-    HashL(K);
+    hash_s(K);
+    hash_p(K);
+    hash_l(K);
 
-    HashE(K, m, internal);
+    hash_e(K, m, internal);
 
-    HashX(internal, h, internal);
-    HashX(internal, m, h);
+    hash_add_mod(internal, h, internal);
+    hash_add_mod(internal, m, h);
 }
 
-static void
-HashPadding(THashContext* CTX)
+void hash_padding(THashContext* stribog_ctx)
 {
-    vect internal;
+    uint_block_size internal;
 
-    if (CTX->buf_size < BLOCK_SIZE)
+    if (stribog_ctx->buffer_size < BLOCK_SIZE)
     {
         memset(internal, 0x00, BLOCK_SIZE);
-        memcpy(internal, CTX->buffer, CTX->buf_size);
-        internal[CTX->buf_size] = 0x01;
-        memcpy(CTX->buffer, internal, BLOCK_SIZE);
+        memcpy(internal, stribog_ctx->buffer, stribog_ctx->buffer_size);
+        internal[stribog_ctx->buffer_size] = 0x01;
+        memcpy(stribog_ctx->buffer, internal, BLOCK_SIZE);
     }
 }
 
-static void
-HashStage_2(THashContext* CTX, const uint8_t* data)
+// хешируем блок
+void hash_block(THashContext* stribog_ctx, const uint8_t* data)
 {
-    HashG(CTX->h, CTX->N, data);
-    HashAdd512(CTX->N, CTX->v_512, CTX->N);
-    HashAdd512(CTX->Sigma, data, CTX->Sigma);
+    hash_g(stribog_ctx->h, stribog_ctx->N, data);
+    hash_xor(stribog_ctx->N, stribog_ctx->v_512, stribog_ctx->N);
+    hash_xor(stribog_ctx->sigma, data, stribog_ctx->sigma);
 }
 
-static void
-HashStage_3(THashContext* CTX)
+// хешируем остаток и считаем контрольную сумму
+void hash_last(THashContext* stribog_ctx)
 {
-    vect internal;
+    uint_block_size internal;
     memset(internal, 0x00, BLOCK_SIZE);
-    internal[1] = ((CTX->buf_size * 8) >> 8) & 0xff;
-    internal[0] = (CTX->buf_size * 8) & 0xff;
+    internal[1] = ((stribog_ctx->buffer_size * 8) >> 8) & 0xff;
+    internal[0] = (stribog_ctx->buffer_size * 8) & 0xff;
 
-    HashPadding(CTX);
+    hash_padding(stribog_ctx);
 
-    HashG(CTX->h, CTX->N, (const uint8_t*)&(CTX->buffer));
+    hash_g(stribog_ctx->h, stribog_ctx->N, (const uint8_t*)&(stribog_ctx->buffer));
 
-    HashAdd512(CTX->N, internal, CTX->N);
-    HashAdd512(CTX->Sigma, CTX->buffer, CTX->Sigma);
+    hash_xor(stribog_ctx->N, internal, stribog_ctx->N);
+    hash_xor(stribog_ctx->sigma, stribog_ctx->buffer, stribog_ctx->sigma);
 
-    HashG(CTX->h, CTX->v_0, (const uint8_t*)&(CTX->N));
-    HashG(CTX->h, CTX->v_0, (const uint8_t*)&(CTX->Sigma));
-    memcpy(CTX->hash, CTX->h, BLOCK_SIZE);
+    hash_g(stribog_ctx->h, stribog_ctx->v_0, (const uint8_t*)&(stribog_ctx->N));
+    hash_g(stribog_ctx->h, stribog_ctx->v_0, (const uint8_t*)&(stribog_ctx->sigma));
+    memcpy(stribog_ctx->result, stribog_ctx->h, BLOCK_SIZE);
 }
 
-void
-HashUpdate(THashContext* CTX, const uint8_t* data, size_t len)
+// хешируем блоки
+void hash_blocks(THashContext* stribog_ctx, const uint8_t* data, size_t len)
 {
     size_t chk_size;
 
-    while ((len > 63) && (CTX->buf_size) == 0)
+    while ((len > 63) && (stribog_ctx->buffer_size) == 0)
     {
-        HashStage_2(CTX, data);
+        hash_block(stribog_ctx, data);
         data += 64;
         len -= 64;
     }
     while (len)
     {
-        chk_size = 64 - CTX->buf_size;
+        chk_size = 64 - stribog_ctx->buffer_size;
         if (chk_size > len)
             chk_size = len;
-        memcpy(&CTX->buffer[CTX->buf_size], data, chk_size);
-        CTX->buf_size += chk_size;
+        memcpy(&stribog_ctx->buffer[stribog_ctx->buffer_size], data, chk_size);
+        stribog_ctx->buffer_size += chk_size;
         len -= chk_size;
         data += chk_size;
-        if (CTX->buf_size == 64)
+        if (stribog_ctx->buffer_size == 64)
         {
-            HashStage_2(CTX, CTX->buffer);
-            CTX->buf_size = 0;
+            hash_block(stribog_ctx, stribog_ctx->buffer);
+            stribog_ctx->buffer_size = 0;
         }
     }
 }
-void
-HashFinal(THashContext* CTX)
+void hash_final(THashContext* stribog_ctx)
 {
-    HashStage_3(CTX);
-    CTX->buf_size = 0;
-}
-
-static void
-HashPrint(THashContext* CTX)
-{
-    int i;
-    if (CTX->hash_size == 256)
-        for (i = 32; i < 64; i++)
-            printf("%02x", CTX->hash[i]);
-    else
-        for (i = 0; i < 64; i++)
-            printf("%02x", CTX->hash[i]);
-    printf("\n");
+    hash_last(stribog_ctx);
+    stribog_ctx->buffer_size = 0;
 }
 
 void lr4(std::string str) {
 	std::cout << "Message: " << str << std::endl;
-    THashContext* CTX = new THashContext();
-    HashInit(CTX, 512);
-    HashUpdate(CTX, (unsigned char*)str.c_str(), str.size());
-    HashFinal(CTX);
-    HashPrint(CTX);
+    THashContext* stribog_ctx = new THashContext();
+    hash_init(stribog_ctx);
+    hash_blocks(stribog_ctx, (uint8_t*)str.c_str(), str.size());
+    hash_final(stribog_ctx);
+
+    // ѕреобразуем в шестнадцатеричное представление
+    std::cout << "Hash: ";
+    for (int i = 32; i < 64; i++)
+        std::cout << std::setw(2) << std::setfill('0') << std::hex << int{ stribog_ctx->result[i] };
+    std::cout << std::endl;
 }
