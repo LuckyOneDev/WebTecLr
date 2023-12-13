@@ -202,7 +202,7 @@ void decrypt_block(kuznechik_key* key, uint64_t* block)
 	(block)[1] = x.q[1];
 }
 
-void lr3(std::string str) {
+void lr3(std::string str, std::ofstream& out) {
 	std::vector<uint64_t*> blocks;
 	for (size_t i = 0; i < str.size(); i++)
 	{
@@ -220,7 +220,7 @@ void lr3(std::string str) {
 	auto subkeys = new kuznechik_key();
 	set_encryption_key(subkeys, key);
 
-	std::cout << "Message: " << str << std::endl;
+	out << "Message: " << str << std::endl;
 	for (auto block : blocks)
 	{
 		encrypt_block(subkeys, block);
@@ -234,5 +234,5 @@ void lr3(std::string str) {
 	{
 		ss << (char)(*block);
 	}
-	std::cout << "Decrypted message: " << ss.str() << std::endl;
+	out << "Decrypted message: " << ss.str() << std::endl;
 }

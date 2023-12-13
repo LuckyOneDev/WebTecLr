@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <iomanip>
+#include <fstream>
 
 using namespace std;
 
@@ -104,11 +105,11 @@ ostream& operator<<(ostream& os, const BigInt& bi) {
 	return os;
 }
 
-void lr1() {
+void lr1(std::ofstream& out) {
 	BigInt a(21);
 	BigInt b(131);
 	a = a.pow(21);
 	b = b.pow(41);
 	BigInt c = a + b;
-	std::cout << c.pow(2) << std::endl;
+	out << c.pow(2) << std::endl;
 }

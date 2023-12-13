@@ -448,7 +448,7 @@ void hash_final(THashContext* stribog_ctx)
     stribog_ctx->buffer_size = 0;
 }
 
-void lr4(std::string str) {
+void lr4(std::string str, std::ofstream& out) {
 	std::cout << "Message: " << str << std::endl;
     THashContext* stribog_ctx = new THashContext();
     hash_init(stribog_ctx);
@@ -456,8 +456,8 @@ void lr4(std::string str) {
     hash_final(stribog_ctx);
 
     // ѕреобразуем в шестнадцатеричное представление
-    std::cout << "Hash: ";
+    out << "Hash: ";
     for (int i = 32; i < 64; i++)
-        std::cout << std::setw(2) << std::setfill('0') << std::hex << int{ stribog_ctx->result[i] };
-    std::cout << std::endl;
+        out << std::setw(2) << std::setfill('0') << std::hex << int{ stribog_ctx->result[i] };
+    out << std::endl;
 }

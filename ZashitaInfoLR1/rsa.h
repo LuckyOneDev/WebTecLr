@@ -89,7 +89,7 @@ string decode(std::vector<mpz_class> message) {
     return ss.str();
 }
 
-int lr2(std::string text, int bits = 1024) {
+int lr2(std::string text, std::ofstream& out, int bits = 1024) {
     // Generate two random prime numbers of 1024 bits each
     mpz_class p, q, n, e, d, phi;
     p = generate_prime(bits);
@@ -117,8 +117,8 @@ int lr2(std::string text, int bits = 1024) {
     // Print
     auto decoded_orig = decode(message);
     auto decoded_after_ci = decode(decrypted_message);
-    std::cout << "Message: " << decoded_orig << std::endl;
-    std::cout << "Decrypted message: " << decoded_after_ci << std::endl;
+    out << "Message: " << decoded_orig << std::endl;
+    out << "Decrypted message: " << decoded_after_ci << std::endl;
 
     return 0;
 }
